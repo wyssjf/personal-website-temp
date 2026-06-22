@@ -120,6 +120,7 @@ const recentPosts = (await getCollection('blog'))
       <p>There's a hidden challenge scattered across this site. Here's what to look for &mdash; figuring out exactly how is on you.</p>
       <SecretCounter />
       <ul id="clues-list" class="clues-list"></ul>
+      <a id="clues-secrets-link" href="/secrets" class="btn btn-primary clues-secrets-link" hidden>Visit the Secret Arcade &rarr;</a>
     </div>
   </div>
 
@@ -197,15 +198,25 @@ const recentPosts = (await getCollection('blog'))
 
   const lightbox = document.getElementById('clues-lightbox');
   const cluesList = document.getElementById('clues-list');
+  const cluesSecretsLink = document.getElementById('clues-secrets-link');
   const trigger = document.getElementById('clues-trigger');
 
-  if (cluesList) {
+  function renderClues() {
     const unlocked = getAchievements();
-    cluesList.innerHTML = ACHIEVEMENTS.map((a) => {
-      const isUnlocked = Boolean(unlocked[a.id]);
-      return `<li class="${isUnlocked ? 'is-solved' : ''}">${isUnlocked ? `✓ ${a.explanation}` : a.clue}</li>`;
-    }).join('');
+
+    if (cluesList) {
+      cluesList.innerHTML = ACHIEVEMENTS.map((a) => {
+        const isUnlocked = Boolean(unlocked[a.id]);
+        return `<li class="${isUnlocked ? 'is-solved' : ''}">${isUnlocked ? `✓ ${a.explanation}` : a.clue}</li>`;
+      }).join('');
+    }
+
+    const allFound = ACHIEVEMENTS.every((a) => unlocked[a.id]);
+    cluesSecretsLink?.toggleAttribute('hidden', !allFound);
   }
+
+  renderClues();
+  window.addEventListener('achievements-updated', renderClues);
 
   function openLightbox() {
     lightbox?.removeAttribute('hidden');

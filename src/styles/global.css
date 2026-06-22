@@ -36,6 +36,7 @@
 
 html {
   scroll-behavior: smooth;
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -103,6 +104,10 @@ textarea:focus-visible {
   height: 6px;
   border-radius: 50%;
   background: var(--accent);
+}
+
+.hero-copy > .eyebrow::before {
+  content: none;
 }
 
 .gradient-text {
@@ -358,6 +363,11 @@ nav {
   .nav-links a.nav-cta {
     margin-top: 0.25rem;
   }
+
+  .hero-stats {
+    flex-direction: column;
+    gap: 1.25rem;
+  }
 }
 
 /* --- Hero --- */
@@ -372,17 +382,15 @@ nav {
   overflow: hidden;
 }
 
-.hero-copy,
-.hero-visual {
+.hero-copy {
   position: relative;
   z-index: 1;
-}
-
-.hero-copy {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-width: 640px;
 }
 
 .hero h1 {
@@ -398,6 +406,7 @@ nav {
 }
 
 .hero-actions {
+  width: 100%;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -495,12 +504,19 @@ nav {
   color: var(--text-color);
 }
 
+.clues-secrets-link {
+  display: block;
+  margin: 1.5rem auto 0;
+  width: fit-content;
+}
+
 .clues-list .is-solved {
   color: var(--accent-dark);
   font-weight: 600;
 }
 
 .hero-stats {
+  width: 100%;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -511,6 +527,7 @@ nav {
 }
 
 .social-row {
+  width: 100%;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
