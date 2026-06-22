@@ -1,10 +1,20 @@
 ---
 ---
-<div id="wc-goalpost" class="wc-goalpost" aria-hidden="true"></div>
-<div id="wc-ball" class="wc-ball" aria-label="Kick the ball" role="button" tabindex="0">
+<div id="wc-goalpost-left" class="wc-goalpost wc-goalpost-left" aria-hidden="true"></div>
+<div id="wc-goalpost-right" class="wc-goalpost wc-goalpost-right" aria-hidden="true"></div>
+<div id="wc-paddle-left" class="wc-paddle" aria-hidden="true"></div>
+<div id="wc-paddle-right" class="wc-paddle" aria-hidden="true"></div>
+<div id="wc-ball" class="wc-ball" aria-hidden="true">
   <img src="/soccer-ball.png" alt="" />
 </div>
 <div id="wc-goal" class="wc-goal" aria-hidden="true">GOOAAALLLLL</div>
+<div id="wc-controls" class="wc-controls">
+  <span class="wc-controls-label">Soccer Pong</span>
+  <button id="wc-pause" class="wc-control-btn" type="button" aria-label="Pause game" aria-pressed="false">&#10074;&#10074;</button>
+  <button id="wc-mute" class="wc-control-btn" type="button" aria-label="Mute game sounds" aria-pressed="false">&#128266;</button>
+  <button id="wc-speed" class="wc-control-btn wc-speed-btn" type="button" aria-label="Ball speed: 1x (click to change)">1&times;</button>
+  <button id="wc-difficulty" class="wc-control-btn wc-difficulty-btn" type="button" aria-label="Difficulty: Hard (click to change)">Hard</button>
+</div>
 
 <script>
   import { playPokeSound, playUnlockSound } from '../lib/sound.js';
@@ -13,99 +23,285 @@
 
   const ball = document.getElementById('wc-ball');
   const goal = document.getElementById('wc-goal');
-  const goalpost = document.getElementById('wc-goalpost');
+  const goalpostLeft = document.getElementById('wc-goalpost-left');
+  const goalpostRight = document.getElementById('wc-goalpost-right');
+  const paddleLeft = document.getElementById('wc-paddle-left');
+  const paddleRight = document.getElementById('wc-paddle-right');
+  const controls = document.getElementById('wc-controls');
+  const pauseBtn = document.getElementById('wc-pause');
+  const muteBtn = document.getElementById('wc-mute');
+  const speedBtn = document.getElementById('wc-speed');
+  const difficultyBtn = document.getElementById('wc-difficulty');
 
-  if (new Date() > WORLD_CUP_END) {
+  function removeAll() {
     ball?.remove();
     goal?.remove();
-    goalpost?.remove();
+    goalpostLeft?.remove();
+    goalpostRight?.remove();
+    paddleLeft?.remove();
+    paddleRight?.remove();
+    controls?.remove();
+  }
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (
+    new Date() > WORLD_CUP_END ||
+    !ball || !goal || !goalpostLeft || !goalpostRight || !paddleLeft || !paddleRight || !pauseBtn || !muteBtn || !speedBtn || !difficultyBtn ||
+    prefersReducedMotion
+  ) {
+    removeAll();
   } else {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const ballEl = ball;
+    const goalEl = goal;
+    const goalpostLeftEl = goalpostLeft;
+    const goalpostRightEl = goalpostRight;
+    const paddleLeftEl = paddleLeft;
+    const paddleRightEl = paddleRight;
+    const pauseBtnEl = pauseBtn;
+    const muteBtnEl = muteBtn;
+    const speedBtnEl = speedBtn;
+    const difficultyBtnEl = difficultyBtn;
 
-    if (ball && goal && goalpost && !prefersReducedMotion) {
-      const size = 64;
-      const goalZoneWidth = 28;
-      let x = Math.random() * Math.max(window.innerWidth - size, 0);
-      let y = Math.random() * Math.max(window.innerHeight - size, 0);
-      let vx = (Math.random() < 0.5 ? -1 : 1) * (1.5 + Math.random());
-      let vy = (Math.random() < 0.5 ? -1 : 1) * (1.5 + Math.random());
-      let rotation = 0;
-      let scoreCooldown = false;
+    const BALL_SPEED = 7;
+    const ballSize = 56;
+    const paddleHeight = 110;
+    const paddleWidth = 12;
+    const paddleInsetLeft = 18;
+    const paddleInsetRight = 18;
+    const GOAL_HEIGHT = 170;
+    const AI_MAX_SPEED = 6;
+    const AI_ERROR_MARGIN = 110;
+    const SPEED_MULTIPLIERS = [1, 1.5, 2, 2.5, 3];
+    const DIFFICULTY_ORDER = ['hard', 'medium', 'easy'] as const;
+    const DIFFICULTY_MISTAKE_MULTIPLIERS = { hard: 1, medium: 2, easy: 4 };
+    const DIFFICULTY_LABELS = { hard: 'Hard', medium: 'Medium', easy: 'Easy' };
 
-      function getGoalBounds() {
-        const top = window.innerHeight * 0.35;
-        const bottom = window.innerHeight * 0.65;
-        return { top, bottom };
+    let speedLevel = Number(localStorage.getItem('wc_speed_level')) || 1;
+    if (speedLevel < 1 || speedLevel > 5) speedLevel = 1;
+    function getSpeedMultiplier() {
+      return SPEED_MULTIPLIERS[speedLevel - 1];
+    }
+
+    let difficulty = (localStorage.getItem('wc_difficulty') as typeof DIFFICULTY_ORDER[number]) || 'hard';
+    if (!DIFFICULTY_ORDER.includes(difficulty)) difficulty = 'hard';
+    function getMistakeMultiplier() {
+      return DIFFICULTY_MISTAKE_MULTIPLIERS[difficulty];
+    }
+
+    let x = window.innerWidth / 2 - ballSize / 2;
+    let y = window.innerHeight / 2 - ballSize / 2;
+    let vx = (Math.random() < 0.5 ? -1 : 1) * BALL_SPEED * getSpeedMultiplier();
+    let vy = (Math.random() - 0.5) * BALL_SPEED * getSpeedMultiplier();
+    let rotation = 0;
+    let scoreCooldown = false;
+    let paused = false;
+    let muted = localStorage.getItem('wc_muted') === 'true';
+    let aiError = (Math.random() - 0.5) * AI_ERROR_MARGIN * getMistakeMultiplier();
+
+    let leftPaddleY = window.innerHeight / 2 - paddleHeight / 2;
+    let rightPaddleY = window.innerHeight / 2 - paddleHeight / 2;
+    let rightPaddleTarget = rightPaddleY;
+    const keysDown = { up: false, down: false };
+
+    function getGoalBand() {
+      const top = (window.innerHeight - GOAL_HEIGHT) / 2;
+      return { top, bottom: top + GOAL_HEIGHT };
+    }
+
+    function positionGoalposts() {
+      const { top, bottom } = getGoalBand();
+      goalpostLeftEl.style.top = `${top}px`;
+      goalpostLeftEl.style.height = `${bottom - top}px`;
+      goalpostRightEl.style.top = `${top}px`;
+      goalpostRightEl.style.height = `${bottom - top}px`;
+    }
+    positionGoalposts();
+    window.addEventListener('resize', positionGoalposts);
+
+    // Right paddle follows mouse / touch.
+    window.addEventListener('mousemove', (e) => {
+      rightPaddleTarget = e.clientY - paddleHeight / 2;
+    });
+    window.addEventListener('touchmove', (e) => {
+      if (e.touches[0]) rightPaddleTarget = e.touches[0].clientY - paddleHeight / 2;
+    }, { passive: true });
+
+    // Keyboard fallback for accessibility.
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') keysDown.up = true;
+      if (e.key === 'ArrowDown') keysDown.down = true;
+    });
+    window.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowUp') keysDown.up = false;
+      if (e.key === 'ArrowDown') keysDown.down = false;
+    });
+
+    // Pause / mute controls.
+    function setPaused(value: boolean) {
+      paused = value;
+      pauseBtnEl.innerHTML = paused ? '&#9654;' : '&#10074;&#10074;';
+      pauseBtnEl.setAttribute('aria-pressed', String(paused));
+      pauseBtnEl.setAttribute('aria-label', paused ? 'Resume game' : 'Pause game');
+    }
+    function setMuted(value: boolean) {
+      muted = value;
+      localStorage.setItem('wc_muted', String(muted));
+      muteBtnEl.innerHTML = muted ? '&#128263;' : '&#128266;';
+      muteBtnEl.setAttribute('aria-pressed', String(muted));
+      muteBtnEl.setAttribute('aria-label', muted ? 'Unmute game sounds' : 'Mute game sounds');
+    }
+    setMuted(muted);
+    speedBtnEl.textContent = `${speedLevel}×`;
+    speedBtnEl.setAttribute('aria-label', `Ball speed: ${speedLevel}x (click to change)`);
+    difficultyBtnEl.textContent = DIFFICULTY_LABELS[difficulty];
+    difficultyBtnEl.setAttribute('aria-label', `Difficulty: ${DIFFICULTY_LABELS[difficulty]} (click to change)`);
+
+    function setSpeedLevel(level: number) {
+      const oldMultiplier = getSpeedMultiplier();
+      speedLevel = level;
+      localStorage.setItem('wc_speed_level', String(level));
+      const ratio = getSpeedMultiplier() / oldMultiplier;
+      vx *= ratio;
+      vy *= ratio;
+      speedBtnEl.textContent = `${level}×`;
+      speedBtnEl.setAttribute('aria-label', `Ball speed: ${level}x (click to change)`);
+    }
+
+    function setDifficulty(value: typeof DIFFICULTY_ORDER[number]) {
+      difficulty = value;
+      localStorage.setItem('wc_difficulty', value);
+      aiError = (Math.random() - 0.5) * AI_ERROR_MARGIN * getMistakeMultiplier();
+      difficultyBtnEl.textContent = DIFFICULTY_LABELS[value];
+      difficultyBtnEl.setAttribute('aria-label', `Difficulty: ${DIFFICULTY_LABELS[value]} (click to change)`);
+    }
+
+    pauseBtnEl.addEventListener('click', () => setPaused(!paused));
+    muteBtnEl.addEventListener('click', () => setMuted(!muted));
+    speedBtnEl.addEventListener('click', () => setSpeedLevel(speedLevel >= 5 ? 1 : speedLevel + 1));
+    difficultyBtnEl.addEventListener('click', () => {
+      const nextIndex = (DIFFICULTY_ORDER.indexOf(difficulty) + 1) % DIFFICULTY_ORDER.length;
+      setDifficulty(DIFFICULTY_ORDER[nextIndex]);
+    });
+
+    function serve(direction: number) {
+      x = window.innerWidth / 2 - ballSize / 2;
+      y = window.innerHeight / 2 - ballSize / 2;
+      vx = direction * BALL_SPEED * getSpeedMultiplier();
+      vy = (Math.random() - 0.5) * BALL_SPEED * getSpeedMultiplier();
+      aiError = (Math.random() - 0.5) * AI_ERROR_MARGIN * getMistakeMultiplier();
+    }
+
+    function score(side: 'left' | 'right') {
+      scoreCooldown = true;
+      goalEl.style.left = side === 'left' ? '20px' : `${Math.max(window.innerWidth - 320, 20)}px`;
+      goalEl.style.top = `${window.innerHeight / 2 - 30}px`;
+      goalEl.classList.add('is-visible');
+      if (!muted) playUnlockSound();
+      setTimeout(() => goalEl.classList.remove('is-visible'), 1400);
+
+      serve(-1);
+      paused = true;
+      setTimeout(() => {
+        paused = false;
+        scoreCooldown = false;
+      }, 3000);
+    }
+
+    // Predicts where the ball will cross the left paddle's x position,
+    // bouncing the projection off the top/bottom walls like a triangle wave.
+    function predictLeftTargetY(leftPaddleX: number) {
+      if (vx >= 0) {
+        return window.innerHeight / 2 - paddleHeight / 2;
       }
+      const maxY = window.innerHeight - ballSize;
+      const distance = x - leftPaddleX;
+      const timeToReach = distance / -vx;
+      let predicted = y + vy * timeToReach;
+      const period = maxY * 2;
+      predicted = ((predicted % period) + period) % period;
+      if (predicted > maxY) predicted = period - predicted;
+      return predicted + ballSize / 2 - paddleHeight / 2 + aiError;
+    }
 
-      function positionGoalpost() {
-        const { top, bottom } = getGoalBounds();
-        goalpost.style.top = `${top}px`;
-        goalpost.style.height = `${bottom - top}px`;
-      }
-      positionGoalpost();
-      window.addEventListener('resize', positionGoalpost);
+    function frame() {
+      if (!paused) {
+        const maxY = window.innerHeight - ballSize;
 
-      function score() {
-        scoreCooldown = true;
-        goal.style.left = `${Math.max(window.innerWidth - 320, 20)}px`;
-        goal.style.top = `${window.innerHeight / 2 - 30}px`;
-        goal.classList.add('is-visible');
-        playUnlockSound();
+        // Right paddle: mouse/touch target, with keyboard override.
+        if (keysDown.up) rightPaddleTarget = rightPaddleY - 12;
+        if (keysDown.down) rightPaddleTarget = rightPaddleY + 12;
+        rightPaddleY += (rightPaddleTarget - rightPaddleY) * 0.35;
+        rightPaddleY = Math.max(0, Math.min(rightPaddleY, window.innerHeight - paddleHeight));
 
-        setTimeout(() => goal.classList.remove('is-visible'), 1400);
+        // Left paddle: predictive AI with a deliberately imperfect aim and capped speed.
+        const leftPaddleX = paddleInsetLeft + paddleWidth;
+        const aiTarget = predictLeftTargetY(leftPaddleX);
+        const aiMaxSpeed = AI_MAX_SPEED * getSpeedMultiplier();
+        leftPaddleY += Math.max(-aiMaxSpeed, Math.min(aiMaxSpeed, aiTarget - leftPaddleY));
+        leftPaddleY = Math.max(0, Math.min(leftPaddleY, window.innerHeight - paddleHeight));
 
-        // Reset for next round.
-        x = Math.random() * Math.max(window.innerWidth * 0.4, 0);
-        y = Math.random() * Math.max(window.innerHeight - size, 0);
-        vx = 1.5 + Math.random();
-        vy = (Math.random() < 0.5 ? -1 : 1) * (1.5 + Math.random());
+        paddleLeftEl.style.transform = `translate3d(${paddleInsetLeft}px, ${leftPaddleY}px, 0)`;
+        paddleRightEl.style.transform = `translate3d(${window.innerWidth - paddleInsetRight - paddleWidth}px, ${rightPaddleY}px, 0)`;
 
-        setTimeout(() => { scoreCooldown = false; }, 1200);
-      }
-
-      function frame() {
-        const maxX = window.innerWidth - size;
-        const maxY = window.innerHeight - size;
         x += vx;
         y += vy;
 
-        const { top, bottom } = getGoalBounds();
-        const ballCenterY = y + size / 2;
-        const inGoalMouth = ballCenterY >= top && ballCenterY <= bottom;
-
-        if (x >= maxX - goalZoneWidth && inGoalMouth && !scoreCooldown) {
-          score();
-        } else {
-          if (x <= 0 || x >= maxX) vx *= -1;
-          if (y <= 0 || y >= maxY) vy *= -1;
-          x = Math.max(0, Math.min(x, maxX));
+        if (y <= 0 || y >= maxY) {
+          vy *= -1;
           y = Math.max(0, Math.min(y, maxY));
         }
 
-        rotation += 2;
-        ball.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${rotation}deg)`;
-        requestAnimationFrame(frame);
+        const rightPaddleX = window.innerWidth - paddleInsetRight - paddleWidth;
+        const ballCenterY = y + ballSize / 2;
+        const { top: goalTop, bottom: goalBottom } = getGoalBand();
+
+        // Left paddle save.
+        if (vx < 0 && x <= leftPaddleX && ballCenterY >= leftPaddleY && ballCenterY <= leftPaddleY + paddleHeight) {
+          vx = Math.abs(vx);
+          const hitOffset = (ballCenterY - (leftPaddleY + paddleHeight / 2)) / (paddleHeight / 2);
+          vy += hitOffset * 2;
+          x = leftPaddleX;
+          if (!muted) playPokeSound();
+          aiError = (Math.random() - 0.5) * AI_ERROR_MARGIN * getMistakeMultiplier();
+        }
+
+        // Right paddle save.
+        if (vx > 0 && x + ballSize >= rightPaddleX && ballCenterY >= rightPaddleY && ballCenterY <= rightPaddleY + paddleHeight) {
+          vx = -Math.abs(vx);
+          const hitOffset = (ballCenterY - (rightPaddleY + paddleHeight / 2)) / (paddleHeight / 2);
+          vy += hitOffset * 2;
+          x = rightPaddleX - ballSize;
+          if (!muted) playPokeSound();
+        }
+
+        // Left edge: AI's goal. You scored on the computer.
+        if (x <= 0) {
+          if (ballCenterY >= goalTop && ballCenterY <= goalBottom && !scoreCooldown) {
+            score('left');
+          } else {
+            vx = Math.abs(vx);
+            x = 0;
+          }
+        }
+
+        // Right edge: your goal. The computer scored on you.
+        if (x + ballSize >= window.innerWidth) {
+          if (ballCenterY >= goalTop && ballCenterY <= goalBottom && !scoreCooldown) {
+            score('right');
+          } else {
+            vx = -Math.abs(vx);
+            x = window.innerWidth - ballSize;
+          }
+        }
+
+        const maxVy = 10 * getSpeedMultiplier();
+        vy = Math.max(-maxVy, Math.min(maxVy, vy));
+        rotation += vx >= 0 ? 4 : -4;
+        ballEl.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${rotation}deg)`;
       }
       requestAnimationFrame(frame);
-
-      function kick() {
-        playPokeSound();
-        vx = Math.abs(vx) * 2 + 4;
-        vy = (Math.random() - 0.5) * 6;
-      }
-
-      ball.addEventListener('click', kick);
-      ball.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          kick();
-        }
-      });
-    } else {
-      ball?.remove();
-      goal?.remove();
-      goalpost?.remove();
     }
+    requestAnimationFrame(frame);
   }
 </script>
