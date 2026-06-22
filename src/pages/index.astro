@@ -43,7 +43,6 @@ const recentPosts = (await getCollection('blog'))
       </div>
 
       <button id="clues-trigger" class="clues-trigger" type="button">[ Super Secret Challenge ]</button>
-      <SecretCounter />
       <div class="hero-stats">
         <div class="hero-stat">
           <span class="stat-num">MPA</span>
@@ -119,6 +118,7 @@ const recentPosts = (await getCollection('blog'))
       <span class="eyebrow" id="clues-title">Psst</span>
       <h2>Hunting for secrets?</h2>
       <p>There's a hidden challenge scattered across this site. Here's what to look for &mdash; figuring out exactly how is on you.</p>
+      <SecretCounter />
       <ul id="clues-list" class="clues-list"></ul>
     </div>
   </div>
