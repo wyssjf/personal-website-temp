@@ -1,40 +1,15 @@
 ---
 ---
-<div id="float-controls" class="float-controls">
-  <span id="secret-counter" class="secret-counter"></span>
-  <button id="scroll-top" class="scroll-top-btn" aria-label="Scroll to top" type="button">
-    &uarr;
-  </button>
-</div>
+<button id="scroll-top" class="scroll-top-btn" aria-label="Scroll to top" type="button">
+  &uarr;
+</button>
 
 <script>
-  import { ACHIEVEMENTS, getAchievements } from '../lib/achievements.js';
-
-  const container = document.getElementById('float-controls');
   const button = document.getElementById('scroll-top');
-  const counter = document.getElementById('secret-counter');
 
-  const encouragement = [
-    "There's a secret challenge hidden on this site...",
-    "You're warm. Keep poking around.",
-    "Almost there. One more to go.",
-    "You found them all! 🎉",
-  ];
-
-  function updateCounter() {
-    if (!counter) return;
-    const unlocked = getAchievements();
-    const found = ACHIEVEMENTS.filter((a) => unlocked[a.id]).length;
-    const total = ACHIEVEMENTS.length;
-    counter.textContent = `${found} / ${total} secrets — ${encouragement[found]}`;
-  }
-
-  updateCounter();
-  window.addEventListener('achievements-updated', updateCounter);
-
-  if (container && button) {
+  if (button) {
     const toggleVisibility = () => {
-      container.classList.toggle('is-visible', window.scrollY > 400);
+      button.classList.toggle('is-visible', window.scrollY > 400);
     };
 
     toggleVisibility();

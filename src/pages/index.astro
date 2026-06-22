@@ -2,6 +2,7 @@
 // src/pages/index.astro
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ProjectCard from '../components/ProjectCard.astro';
+import SecretCounter from '../components/SecretCounter.astro';
 import { getCollection } from 'astro:content';
 
 const skills = ['Master of Public Administration', 'Database Design', 'Operations Management', 'Mathematical Modelling', 'Cross Country and Track & Field Coach'];
@@ -42,6 +43,7 @@ const recentPosts = (await getCollection('blog'))
       </div>
 
       <button id="clues-trigger" class="clues-trigger" type="button">[ Super Secret Challenge ]</button>
+      <SecretCounter />
       <div class="hero-stats">
         <div class="hero-stat">
           <span class="stat-num">MPA</span>
