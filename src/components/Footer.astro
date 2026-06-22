@@ -1,0 +1,45 @@
+---
+const year = new Date().getFullYear();
+---
+<footer>
+  <div class="footer-inner">
+    <span>&copy; {year} Jay Wyss. All rights reserved.</span>
+    <form id="codeword-form" class="codeword-form" autocomplete="off">
+      <input
+        id="codeword-input"
+        type="text"
+        placeholder="Secret code word?"
+        aria-label="Secret code word"
+      />
+      <button type="submit" class="codeword-submit">&rarr;</button>
+      <span id="codeword-status" class="codeword-status"></span>
+    </form>
+    <div class="footer-links">
+      <a href="mailto:hello@jaywyss.me">hello@jaywyss.me</a>
+      <a href="https://bsky.app/profile/jaywyss.bsky.social" target="_blank" rel="noopener noreferrer">BlueSky</a>
+      <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Proudly built with Astro</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  import { unlock } from '../lib/achievements.js';
+
+  const form = document.getElementById('codeword-form');
+  const input = document.getElementById('codeword-input') as HTMLInputElement | null;
+  const status = document.getElementById('codeword-status');
+
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const value = input?.value.trim().toLowerCase();
+
+    if (value === '12345') {
+      unlock('codeword');
+      if (status) status.textContent = "That's amazing! I have the same combination on my luggage!";
+    } else {
+      if (status) status.textContent = 'Nope.';
+    }
+
+    if (input) input.value = '';
+  });
+</script>

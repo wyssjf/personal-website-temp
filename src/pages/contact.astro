@@ -1,0 +1,73 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout pageTitle="Contact | Jay Wyss" pageDescription="Get in touch with Jay Wyss.">
+  <div class="page-intro">
+    <span class="eyebrow">Contact</span>
+    <h1>Get in touch</h1>
+    <p>Fill out the form below and it'll come straight to my inbox &mdash; or reach me directly below.</p>
+  </div>
+
+  <section class="section">
+    <form
+      id="contact-form"
+      class="contact-form"
+      name="contact"
+      method="POST"
+      data-netlify="true"
+      netlify-honeypot="bot-field"
+    >
+      <input type="hidden" name="form-name" value="contact" />
+      <p class="visually-hidden" aria-hidden="true">
+        <label>Don't fill this out if you're human: <input name="bot-field" tabindex="-1" autocomplete="off" /></label>
+      </p>
+      <label>
+        Name
+        <input type="text" name="name" required />
+      </label>
+      <label>
+        Your email
+        <input type="email" name="email" required />
+      </label>
+      <label>
+        Message
+        <textarea name="message" rows="6" required></textarea>
+      </label>
+      <button type="submit" class="btn btn-primary">Send Message</button>
+      <p id="form-status" class="form-status" role="status"></p>
+    </form>
+  </section>
+
+</BaseLayout>
+
+<script>
+  const form = document.getElementById('contact-form') as HTMLFormElement | null;
+  const status = document.getElementById('form-status');
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = new FormData(form);
+    const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+
+    if (submitButton) submitButton.disabled = true;
+    if (status) status.textContent = 'Sending…';
+
+    try {
+      const response = await fetch('/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(data as unknown as Record<string, string>).toString(),
+      });
+
+      if (!response.ok) throw new Error('Submission failed');
+
+      if (status) status.textContent = "Thanks — your message is on its way. I'll get back to you soon.";
+      form.reset();
+    } catch {
+      if (status) status.textContent = 'Something went wrong. Please try emailing me directly instead.';
+    } finally {
+      if (submitButton) submitButton.disabled = false;
+    }
+  });
+</script>

@@ -1,0 +1,84 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+const allTags = [...new Set(posts.flatMap((post) => post.data.tags))].sort();
+
+const yearGroups = Object.entries(
+  posts.reduce((groups: Record<string, typeof posts>, post) => {
+    const year = post.data.pubDate.getFullYear().toString();
+    groups[year] = groups[year] ?? [];
+    groups[year].push(post);
+    return groups;
+  }, {})
+).sort((a, b) => Number(b[0]) - Number(a[0]));
+---
+
+<BaseLayout pageTitle="Blog | Jay Wyss" pageDescription="Writing from Jay Wyss on systems, data, and public affairs.">
+  <div class="page-intro">
+    <span class="eyebrow">Writing</span>
+    <h1>Blog</h1>
+    <p>Notes on systems, infrastructure, and the overlap between public affairs and technology.</p>
+  </div>
+
+  <div class="tag-filter" role="group" aria-label="Filter posts by tag">
+    <button class="tag-filter-btn is-active" data-tag="all" type="button">All</button>
+    {allTags.map((tag) => (
+      <button class="tag-filter-btn" data-tag={tag.toLowerCase()} type="button">{tag}</button>
+    ))}
+  </div>
+
+  {yearGroups.map(([year, yearPosts]) => (
+    <div class="year-group" data-year={year}>
+      <h2 class="year-heading">{year}</h2>
+      <section class="post-list">
+        {yearPosts.map((post) => (
+          <a
+            class="post-card"
+            data-tags={post.data.tags.map((t: string) => t.toLowerCase()).join(',')}
+            href={`/blog/${post.id}/`}
+          >
+            <span class="post-date">
+              {post.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+            </span>
+            <h2>{post.data.title}</h2>
+            <p>{post.data.description}</p>
+            {post.data.tags.length > 0 && (
+              <div class="tag-list">
+                {post.data.tags.map((tag: string) => <span class="tag">{tag}</span>)}
+              </div>
+            )}
+          </a>
+        ))}
+      </section>
+    </div>
+  ))}
+</BaseLayout>
+
+<script>
+  const filterButtons = document.querySelectorAll<HTMLButtonElement>('.tag-filter-btn');
+  const yearGroups = document.querySelectorAll<HTMLElement>('.year-group');
+
+  filterButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      filterButtons.forEach((b) => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      const tag = btn.dataset.tag;
+
+      yearGroups.forEach((group) => {
+        let anyVisible = false;
+        group.querySelectorAll<HTMLElement>('.post-card').forEach((card) => {
+          const tags = (card.dataset.tags ?? '').split(',');
+          const show = tag === 'all' || tags.includes(tag ?? '');
+          card.classList.toggle('is-hidden', !show);
+          if (show) anyVisible = true;
+        });
+        group.classList.toggle('is-hidden', !anyVisible);
+      });
+    });
+  });
+</script>

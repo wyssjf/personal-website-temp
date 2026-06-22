@@ -1,0 +1,26 @@
+---
+---
+<script>
+  import { unlock } from '../lib/achievements.js';
+  import { launchConfetti } from '../lib/confetti.js';
+
+  const KONAMI = [
+    'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
+    'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight',
+    'b', 'a',
+  ];
+
+  let progress = 0;
+
+  window.addEventListener('keydown', (e) => {
+    const expected = KONAMI[progress];
+    const matches = e.key === expected || e.key.toLowerCase() === expected;
+    progress = matches ? progress + 1 : 0;
+
+    if (progress === KONAMI.length) {
+      progress = 0;
+      unlock('konami');
+      launchConfetti();
+    }
+  });
+</script>

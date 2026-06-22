@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = (await getCollection('blog')).sort(
+    (a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf()
+  );
+  return posts.map((post, index) => ({
+    params: { slug: post.id },
+    props: {
+      post,
+      prevPost: posts[index - 1] ?? null,
+      nextPost: posts[index + 1] ?? null,
+    },
+  }));
+}
+
+const { post, prevPost, nextPost } = Astro.props;
+const { Content } = await render(post);
+---
+
+<BaseLayout pageTitle={`${post.data.title} | Jay Wyss`} pageDescription={post.data.description}>
+  <article class="page-intro post-article">
+    <span class="eyebrow">
+      {post.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+    </span>
+    <h1>{post.data.title}</h1>
+    {post.data.tags.length > 0 && (
+      <div class="tag-list">
+        {post.data.tags.map((tag: string) => <span class="tag">{tag}</span>)}
+      </div>
+    )}
+    <div class="prose">
+      <Content />
+    </div>
+    <div class="post-actions">
+      <a class="btn btn-ghost" href="/blog">&larr; Back to Blog</a>
+      {post.data.sourceUrl && (
+        <a class="btn btn-ghost" href={post.data.sourceUrl} target="_blank" rel="noopener noreferrer">
+          Read Original &rarr;
+        </a>
+      )}
+    </div>
+
+    <nav class="post-pagination">
+      {prevPost ? (
+        <a class="post-pagination-link" href={`/blog/${prevPost.id}/`}>
+          <span class="post-pagination-label">&larr; Previous</span>
+          <span class="post-pagination-title">{prevPost.data.title}</span>
+        </a>
+      ) : <span></span>}
+      {nextPost ? (
+        <a class="post-pagination-link post-pagination-next" href={`/blog/${nextPost.id}/`}>
+          <span class="post-pagination-label">Next &rarr;</span>
+          <span class="post-pagination-title">{nextPost.data.title}</span>
+        </a>
+      ) : <span></span>}
+    </nav>
+  </article>
+</BaseLayout>

@@ -1,0 +1,225 @@
+---
+// src/pages/index.astro
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { getCollection } from 'astro:content';
+
+const skills = ['Master of Public Administration', 'Database Design', 'Operations Management', 'Mathematical Modelling', 'Cross Country and Track & Field Coach'];
+const tickerSet = Array.from({ length: 4 }).flatMap(() => skills);
+const tickerItems = [...tickerSet, ...tickerSet];
+
+const recentPosts = (await getCollection('blog'))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+---
+
+<BaseLayout pageTitle="Jay Wyss, MPA" pageDescription="Systems builder and public affairs professional.">
+
+  <section class="hero">
+    <div class="hero-copy">
+      <span class="eyebrow">Systems &middot; Data &middot; Public Affairs</span>
+      <h1>Hi, I'm <span class="gradient-text" id="squiggle-target">Jay!</span></h1>
+      <p>
+        I'm Jay Wyss. I design databases, automate operations, and ship practical
+        software — grounded in a public affairs background that keeps the work
+        focused on real outcomes, not just clever code.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="/blog">Blog</a>
+        <a class="btn btn-ghost" href="/resume.pdf" download>Résumé</a>
+      </div>
+
+      <div class="social-row">
+        <a href="https://www.youtube.com/jaywyss" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="social-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        </a>
+        <a href="https://bsky.app/profile/jaywyss.bsky.social" target="_blank" rel="noopener noreferrer" aria-label="BlueSky" class="social-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5.202 2.857C7.954 4.922 10.913 9.11 12 11.358c1.087-2.247 4.046-6.436 6.798-8.501C20.783 1.366 24 .213 24 3.883c0 .732-.42 6.156-.667 7.037-.856 3.061-3.978 3.842-6.755 3.37 4.854.826 6.089 3.562 3.422 6.299-5.065 5.196-7.28-1.304-7.847-2.97-.104-.305-.152-.448-.153-.327 0-.121-.05.022-.153.327-.568 1.666-2.782 8.166-7.847 2.97-2.667-2.737-1.432-5.473 3.422-6.3-2.777.473-5.899-.308-6.755-3.369C.42 10.04 0 4.615 0 3.883c0-3.67 3.217-2.517 5.202-1.026"/></svg>
+        </a>
+        <a href="https://www.strava.com/athletes/96615559" target="_blank" rel="noopener noreferrer" aria-label="Strava" class="social-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+        </a>
+      </div>
+
+      <button id="clues-trigger" class="clues-trigger" type="button">[ Super Secret Challenge ]</button>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="stat-num">MPA</span>
+          <span class="stat-label">Public Administration</span>
+        </div>
+        <div class="hero-stat">
+          <span class="stat-num" data-count-to="25000" data-suffix="+">0</span>
+          <span class="stat-label">Miles Ran (1 Lap of Earth!)</span>
+        </div>
+        <div class="hero-stat">
+          <span class="stat-num" data-count-to="100" data-suffix="%">0</span>
+          <span class="stat-label">Self-Hosted</span>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      {tickerItems.map((skill) => (
+        <span class="marquee-item">{skill}<span class="marquee-sep">/</span></span>
+      ))}
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="section-heading">
+      <h2>Featured Work</h2>
+      <a href="/projects">All projects &rarr;</a>
+    </div>
+    <div class="project-list">
+    <ProjectCard
+      index="01"
+      title="Tucker Track"
+      description="Team website for the J.R. Tucker Tigers Cross Country / Track & Field programs."
+      tags={["Web Design", "Team Site"]}
+      url="https://tuckertrack.com"
+    />
+
+    <ProjectCard
+      index="02"
+      title="Pace Pro"
+      description="A pace calculator for runners, built on the training methodology of Renato Canova, Tom 'Tinman' Schwartz, and other renowned running coaches."
+      tags={["Netlify", "Running", "Calculator"]}
+      url="https://pace-pro.netlify.app"
+      />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-heading">
+      <h2>From the Blog</h2>
+      <a href="/blog">All posts &rarr;</a>
+    </div>
+    <div class="post-list">
+      {recentPosts.map((post) => (
+        <a class="post-card" href={`/blog/${post.id}/`}>
+          <span class="post-date">
+            {post.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+          </span>
+          <h2>{post.data.title}</h2>
+          <p>{post.data.description}</p>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <div id="clues-lightbox" class="clues-lightbox" hidden>
+    <div class="clues-backdrop" data-close></div>
+    <div class="clues-modal" role="dialog" aria-modal="true" aria-labelledby="clues-title">
+      <button class="clues-close" type="button" data-close aria-label="Close">&times;</button>
+      <span class="eyebrow" id="clues-title">Psst</span>
+      <h2>Hunting for secrets?</h2>
+      <p>There's a hidden challenge scattered across this site. Here's what to look for &mdash; figuring out exactly how is on you.</p>
+      <ul id="clues-list" class="clues-list"></ul>
+    </div>
+  </div>
+
+</BaseLayout>
+
+<script>
+  import { unlock, ACHIEVEMENTS, getAchievements } from '../lib/achievements.js';
+  import { playPokeSound } from '../lib/sound.js';
+
+  const countEls = document.querySelectorAll<HTMLElement>('[data-count-to]');
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  countEls.forEach((el) => {
+    const target = Number(el.dataset.countTo ?? '0');
+    const suffix = el.dataset.suffix ?? '';
+
+    if (prefersReducedMotion) {
+      el.textContent = `${target.toLocaleString('en-US')}${suffix}`;
+      return;
+    }
+
+    const duration = 1400;
+    const start = performance.now();
+
+    function tick(now: number) {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const value = Math.round(target * eased);
+      el.textContent = `${value.toLocaleString('en-US')}${suffix}`;
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+
+    requestAnimationFrame(tick);
+  });
+
+  const target = document.getElementById('squiggle-target');
+  let clicks = 0;
+
+  const squiggleMessages = [
+    'Ow.',
+    'Hey!',
+    'Stop that.',
+    'Seriously.',
+    'I have feelings.',
+    "Okay, this is excessive.",
+    'Please stop.',
+    'Almost done, I hope.',
+    "One more and I'm telling your mother.",
+    'FINE. You win.',
+  ];
+
+  function showSquiggleBubble(message: string) {
+    if (!target) return;
+    const bubble = document.createElement('span');
+    bubble.className = 'squiggle-bubble';
+    bubble.textContent = message;
+    target.appendChild(bubble);
+    setTimeout(() => bubble.remove(), 900);
+  }
+
+  target?.addEventListener('click', () => {
+    clicks += 1;
+    target.classList.remove('is-wiggling');
+    void target.offsetWidth;
+    target.classList.add('is-wiggling');
+
+    playPokeSound();
+    const message = squiggleMessages[Math.min(clicks, squiggleMessages.length) - 1];
+    showSquiggleBubble(message);
+
+    if (clicks >= 10) {
+      unlock('squiggle');
+    }
+  });
+
+  const lightbox = document.getElementById('clues-lightbox');
+  const cluesList = document.getElementById('clues-list');
+  const trigger = document.getElementById('clues-trigger');
+
+  if (cluesList) {
+    const unlocked = getAchievements();
+    cluesList.innerHTML = ACHIEVEMENTS.map((a) => {
+      const isUnlocked = Boolean(unlocked[a.id]);
+      return `<li class="${isUnlocked ? 'is-solved' : ''}">${isUnlocked ? `✓ ${a.explanation}` : a.clue}</li>`;
+    }).join('');
+  }
+
+  function openLightbox() {
+    lightbox?.removeAttribute('hidden');
+  }
+
+  function closeLightbox() {
+    lightbox?.setAttribute('hidden', '');
+  }
+
+  trigger?.addEventListener('click', openLightbox);
+
+  lightbox?.querySelectorAll('[data-close]').forEach((el) => {
+    el.addEventListener('click', closeLightbox);
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeLightbox();
+  });
+</script>

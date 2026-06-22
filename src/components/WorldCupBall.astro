@@ -1,0 +1,111 @@
+---
+---
+<div id="wc-goalpost" class="wc-goalpost" aria-hidden="true"></div>
+<div id="wc-ball" class="wc-ball" aria-label="Kick the ball" role="button" tabindex="0">
+  <img src="/soccer-ball.png" alt="" />
+</div>
+<div id="wc-goal" class="wc-goal" aria-hidden="true">GOOAAALLLLL</div>
+
+<script>
+  import { playPokeSound, playUnlockSound } from '../lib/sound.js';
+
+  const WORLD_CUP_END = new Date('2026-07-19T23:59:59');
+
+  const ball = document.getElementById('wc-ball');
+  const goal = document.getElementById('wc-goal');
+  const goalpost = document.getElementById('wc-goalpost');
+
+  if (new Date() > WORLD_CUP_END) {
+    ball?.remove();
+    goal?.remove();
+    goalpost?.remove();
+  } else {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (ball && goal && goalpost && !prefersReducedMotion) {
+      const size = 64;
+      const goalZoneWidth = 28;
+      let x = Math.random() * Math.max(window.innerWidth - size, 0);
+      let y = Math.random() * Math.max(window.innerHeight - size, 0);
+      let vx = (Math.random() < 0.5 ? -1 : 1) * (1.5 + Math.random());
+      let vy = (Math.random() < 0.5 ? -1 : 1) * (1.5 + Math.random());
+      let rotation = 0;
+      let scoreCooldown = false;
+
+      function getGoalBounds() {
+        const top = window.innerHeight * 0.35;
+        const bottom = window.innerHeight * 0.65;
+        return { top, bottom };
+      }
+
+      function positionGoalpost() {
+        const { top, bottom } = getGoalBounds();
+        goalpost.style.top = `${top}px`;
+        goalpost.style.height = `${bottom - top}px`;
+      }
+      positionGoalpost();
+      window.addEventListener('resize', positionGoalpost);
+
+      function score() {
+        scoreCooldown = true;
+        goal.style.left = `${Math.max(window.innerWidth - 320, 20)}px`;
+        goal.style.top = `${window.innerHeight / 2 - 30}px`;
+        goal.classList.add('is-visible');
+        playUnlockSound();
+
+        setTimeout(() => goal.classList.remove('is-visible'), 1400);
+
+        // Reset for next round.
+        x = Math.random() * Math.max(window.innerWidth * 0.4, 0);
+        y = Math.random() * Math.max(window.innerHeight - size, 0);
+        vx = 1.5 + Math.random();
+        vy = (Math.random() < 0.5 ? -1 : 1) * (1.5 + Math.random());
+
+        setTimeout(() => { scoreCooldown = false; }, 1200);
+      }
+
+      function frame() {
+        const maxX = window.innerWidth - size;
+        const maxY = window.innerHeight - size;
+        x += vx;
+        y += vy;
+
+        const { top, bottom } = getGoalBounds();
+        const ballCenterY = y + size / 2;
+        const inGoalMouth = ballCenterY >= top && ballCenterY <= bottom;
+
+        if (x >= maxX - goalZoneWidth && inGoalMouth && !scoreCooldown) {
+          score();
+        } else {
+          if (x <= 0 || x >= maxX) vx *= -1;
+          if (y <= 0 || y >= maxY) vy *= -1;
+          x = Math.max(0, Math.min(x, maxX));
+          y = Math.max(0, Math.min(y, maxY));
+        }
+
+        rotation += 2;
+        ball.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${rotation}deg)`;
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+
+      function kick() {
+        playPokeSound();
+        vx = Math.abs(vx) * 2 + 4;
+        vy = (Math.random() - 0.5) * 6;
+      }
+
+      ball.addEventListener('click', kick);
+      ball.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          kick();
+        }
+      });
+    } else {
+      ball?.remove();
+      goal?.remove();
+      goalpost?.remove();
+    }
+  }
+</script>

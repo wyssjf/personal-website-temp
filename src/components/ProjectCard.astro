@@ -1,0 +1,18 @@
+---
+// src/components/ProjectCard.astro
+const { title, description, tags = [], index, url } = Astro.props;
+---
+
+<article class="project-card">
+  {index && <span class="card-index">{index}</span>}
+  <h2>{title}</h2>
+  <p>{description}</p>
+  {tags.length > 0 && (
+    <div class="tag-list">
+      {tags.map((tag: string) => <span class="tag">{tag}</span>)}
+    </div>
+  )}
+  {url && (
+    <a class="card-link" href={url} target="_blank" rel="noopener noreferrer">Visit Site &rarr;</a>
+  )}
+</article>

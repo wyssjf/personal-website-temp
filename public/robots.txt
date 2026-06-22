@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /secrets
+Disallow: /arcade
+
+Sitemap: https://jaywyss.me/sitemap-index.xml

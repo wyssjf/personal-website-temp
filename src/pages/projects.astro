@@ -1,0 +1,48 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+---
+
+<BaseLayout pageTitle="Projects | Jay Wyss" pageDescription="Systems and applications built by Jay Wyss.">
+  <div class="page-intro">
+    <span class="eyebrow">Selected Work</span>
+    <h1>Systems I've built</h1>
+    <p>A few of the platforms, tools, and infrastructure I've designed and shipped.</p>
+  </div>
+
+  <section class="project-list">
+
+    <ProjectCard
+      index="01"
+      title="Tucker Track"
+      description="Team website for the J.R. Tucker Tigers Cross Country / Track & Field programs."
+      tags={["Web Design", "Team Site"]}
+      url="https://tuckertrack.com"
+    />
+
+    <ProjectCard
+      index="02"
+      title="Pace Pro"
+      description="A pace calculator for runners, built on the training methodology of Renato Canova, Tom 'Tinman' Schwartz, and other renowned running coaches."
+      tags={["Netlify", "Running", "Calculator"]}
+      url="https://pace-pro.netlify.app"
+    />
+
+    <ProjectCard
+      index="03"
+      title="Virginia Track Coaches Association"
+      description="Website for the Virginia Track Coaches Association, supporting coaches across the state's track & field and cross country programs."
+      tags={["Web Design", "Association Site"]}
+      url="https://vtca.net"
+    />
+
+    <ProjectCard
+      index="04"
+      title="J.R. Tucker Athletic Boosters"
+      description="Website for the J.R. Tucker Athletic Boosters, supporting fundraising and community engagement for Tucker athletics."
+      tags={["Web Design", "Booster Club"]}
+      url="https://www.jrtathleticboosters.com"
+    />
+
+  </section>
+</BaseLayout>
