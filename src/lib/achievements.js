@@ -46,9 +46,11 @@ export function unlock(id) {
   window.dispatchEvent(new CustomEvent('achievements-updated'));
 
   const allFound = ACHIEVEMENTS.every((a) => current[a.id]);
-  const onSecretsPage = window.location.pathname.replace(/\/$/, '').endsWith('/secrets');
+  const path = window.location.pathname.replace(/\/$/, '');
+  const onSecretsPage = path.endsWith('/secrets');
+  const onHomePage = path === '' || path === '/';
 
-  if (allFound && !onSecretsPage) {
+  if (allFound && !onSecretsPage && !onHomePage) {
     import('./finale.js').then(({ showFinalePopup }) => showFinalePopup());
   }
 }

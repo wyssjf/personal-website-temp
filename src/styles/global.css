@@ -365,8 +365,7 @@ nav {
   }
 
   .hero-stats {
-    flex-direction: column;
-    align-items: center;
+    grid-template-columns: 1fr;
     gap: 1.25rem;
   }
 }
@@ -413,6 +412,11 @@ nav {
   justify-content: center;
   gap: 1rem;
   margin-top: 2rem;
+}
+
+.hero-actions .btn {
+  justify-content: center;
+  min-width: 140px;
 }
 
 .clues-trigger,
@@ -518,9 +522,9 @@ nav {
 
 .hero-stats {
   width: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  justify-items: center;
   gap: 1.5rem 2rem;
   margin-top: 2.5rem;
   padding-top: 1.75rem;
@@ -1559,8 +1563,9 @@ footer {
 }
 
 .codeword-form {
-  position: relative;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
   gap: 0.5rem;
 }
@@ -1602,14 +1607,11 @@ footer {
 }
 
 .codeword-status {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+  flex-basis: 100%;
   margin-top: 0.4rem;
   font-size: 0.85rem;
   color: var(--text-muted);
-  max-width: 260px;
+  max-width: 320px;
   white-space: normal;
   text-align: center;
 }

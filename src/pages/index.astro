@@ -213,10 +213,13 @@ const recentPosts = (await getCollection('blog'))
 
     const allFound = ACHIEVEMENTS.every((a) => unlocked[a.id]);
     cluesSecretsLink?.toggleAttribute('hidden', !allFound);
+    return allFound;
   }
 
   renderClues();
-  window.addEventListener('achievements-updated', renderClues);
+  window.addEventListener('achievements-updated', () => {
+    if (renderClues()) openLightbox();
+  });
 
   function openLightbox() {
     lightbox?.removeAttribute('hidden');
