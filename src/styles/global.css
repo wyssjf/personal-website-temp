@@ -515,6 +515,10 @@ nav {
   width: fit-content;
 }
 
+.clues-secrets-link[hidden] {
+  display: none;
+}
+
 .clues-list .is-solved {
   color: var(--accent-dark);
   font-weight: 600;
